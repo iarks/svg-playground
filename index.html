@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="scripts/snap.svg-min.js"></script>
+    <title>Document</title>
+</head>
+<script src="scripts/main.js"></script>
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" height="200" width="600" onload="makeDraggable(evt)" class="main">
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" onload="makeDraggable(evt)"> -->
+        
+        <g transform="scale(1)" id="main-g">
+
+            <g class="draggable">
+                <rect x="0" y="0" width="10" height="10" fill="blue" />
+                <rect x="0" y="0" width="5" height="5" fill="red" />
+            </g>
+        
+        </g>
+    </svg>
+    <button onclick="addnew()">Add new elements</button>
+</body>
+<style>
+    .draggable {
+        cursor: move;
+    }
+</style>
+
+</html>
