@@ -1,50 +1,37 @@
 function makeDraggable(evt) {
     var svg = evt.target;
+    let selectedElement = null, offset = null;
     svg.addEventListener('mousedown', startDrag);
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
     svg.addEventListener('mouseleave', endDrag);
-    svg.addEventListener('wheel', zoom)
+    svg.addEventListener('contextmenu', showmenu)
 
-    let selectedElement = null, offset = null;;
 
-    let mainGroup = document.getElementById('main-g');
 
-    function zoom(evt) {
-        let scaleMatrix = mainGroup.transform.baseVal.getItem(0).matrix;
-            let sx = scaleMatrix.a;
-            let sy = scaleMatrix.d;
-        if (evt.deltaY > 0) {
-            mainGroup.setAttribute('transform', `scale(${sx + 0.1},${sy + 0.1})`)
-        }
-        else if (evt.deltaY < 0) {
-            let sc = {x:sx-0.1, y: sy-0.1}
-            if(sc.x<0.1 || sc.y<0.1)
-            {
-                mainGroup.setAttribute('transform', `scale(${0.1},${0.1})`);
-                return;
-            }
-            mainGroup.setAttribute('transform', `scale(${sc.x},${sc.y})`)
-        }
+    var svgPan=false;
+
+    function showmenu(evt){
+        evt.preventDefault();
+        addnew(evt);
     }
 
     function startDrag(evt) {
-        if (evt.target.parentNode.classList.contains('draggable'))
+        if (evt.target.parentNode.classList.contains('draggable')) {
             selectedElement = evt.target.parentNode;
-        else if(evt.target.classList.contains('main'))
-        {
-            selectedElement = mainGroup;
         }
-
+        else if(evt.target.classList.contains('main')) {
+            selectedElement = document.getElementById("main-group");
+        }
+        
+        // get the mouse position offset in SVG units
         offset = getMousePosition(evt);
 
+        // get the transform - if no transform exists add a default transform
         var transforms = selectedElement.transform.baseVal;
-
         if (transforms.length === 0 || transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
             var translate = svg.createSVGTransform();
-
             translate.setTranslate(0, 0);
-
             selectedElement.transform.baseVal.insertItemBefore(translate, 0);
         }
 
@@ -52,11 +39,14 @@ function makeDraggable(evt) {
 
         //offset.x -= parseFloat(selectedElement.getAttribute("x"));
         //offset.y -= parseFloat(selectedElement.getAttribute("y"));
+        
+        // change the offset
         offset.x -= transform.matrix.e;
         offset.y -= transform.matrix.f;
     }
+
     function drag(evt) {
-        if (selectedElement) {
+        if (selectedElement!==null) {
             evt.preventDefault();
 
             var coords = getMousePosition(evt);
@@ -66,6 +56,7 @@ function makeDraggable(evt) {
             //selectedElement.setAttribute("y", coords.y - offset.y);
         }
     }
+
     function endDrag(evt) {
         selectedElement = null;
     }
@@ -77,12 +68,32 @@ function makeDraggable(evt) {
             y: (evt.clientY - CTM.f) / CTM.d
         };
     }
-}
 
-function addnew(){
-    document.getElementsByClassName("main")[0].children[0].innerHTML += "<g class='draggable'>" + 
-        "<rect x='0' y='0' width='10' height='10' fill='blue' />"
-        "<rect x='0' y='0' width='5' height='5' fill='red' />"
-    "</g>"
-}
+    function screenCoordsToSVG(screenX, screenY, svgRef){
+        // translate that to svg points
+        pt = svgRef.createSVGPoint();
+        pt.x = screenX;
+        pt.y = screenY;
 
+        var svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+        
+        return {
+            x:svgP.x,
+            y:svgP.y
+        }
+    }
+
+    function addnew(evt)
+    {
+        var svgP = screenCoordsToSVG(evt.clientX, evt.clientY, svg);
+        
+        newG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttributeNS(null, 'cx', svgP.x);
+        circle.setAttributeNS(null, 'cy', svgP.y);
+        circle.setAttributeNS(null, 'r', 100);
+        newG.appendChild(circle);
+        newG.setAttributeNS(null,'class','draggable');
+        document.getElementById('main-group').appendChild(newG);
+    }
+}
