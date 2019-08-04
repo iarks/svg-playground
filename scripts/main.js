@@ -56,8 +56,6 @@ function makeDraggable(evt) {
     }
 
     function drag(evt) {
-        aa = screenCoordsToSVG(evt.clientX, evt.clientY, svg)
-        console.log(aa.x, aa.y);
         if(svgPan)
         {
             updatedMouseVal = {
@@ -65,16 +63,16 @@ function makeDraggable(evt) {
                 y:evt.clientY
             }
 
-            deltaVal = {
+            deltaMouseVal = {
                 x:updatedMouseVal.x - currentMousePos.x,
                 y:updatedMouseVal.y - currentMousePos.y
             }
 
-            x=svg.viewBox.baseVal;
-            v = screenCoordsToSVG(evt.clientX, evt.clientY, svg);
-            x.x -= deltaVal.x;
-            x.y -= deltaVal.y;
+            currentSVGViewBox = svg.viewBox.baseVal;
+            currentSVGViewBox.x -= deltaMouseVal.x;
+            currentSVGViewBox.y -= deltaMouseVal.y;
             currentMousePos = updatedMouseVal;
+            return;
         }
 
         if (selectedElement !== null) {
