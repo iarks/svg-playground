@@ -1,6 +1,7 @@
 function makeDraggable(evt) {
     var svg = evt.target;
-    let selectedElement = null, offset = null;
+    let selectedElement = null,
+        offset = null;
     svg.addEventListener('mousedown', startDrag);
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
@@ -9,9 +10,11 @@ function makeDraggable(evt) {
 
 
 
-    var svgPan=false;
+    var svgPan = false;
 
-    function showmenu(evt){
+    var currentMousePos;
+
+    function showmenu(evt) {
         evt.preventDefault();
         addnew(evt);
     }
@@ -19,34 +22,62 @@ function makeDraggable(evt) {
     function startDrag(evt) {
         if (evt.target.parentNode.classList.contains('draggable')) {
             selectedElement = evt.target.parentNode;
-        }
-        else if(evt.target.classList.contains('main')) {
-            selectedElement = document.getElementById("main-group");
-        }
-        
-        // get the mouse position offset in SVG units
-        offset = getMousePosition(evt);
+            svgPan = false;
 
-        // get the transform - if no transform exists add a default transform
-        var transforms = selectedElement.transform.baseVal;
-        if (transforms.length === 0 || transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
-            var translate = svg.createSVGTransform();
-            translate.setTranslate(0, 0);
-            selectedElement.transform.baseVal.insertItemBefore(translate, 0);
+            // get the mouse position offset in SVG units
+            offset = getMousePosition(evt);
+
+            // get the transform - if no transform exists add a default transform
+            var transforms = selectedElement.transform.baseVal;
+            if (transforms.length === 0 || transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
+                var translate = svg.createSVGTransform();
+                translate.setTranslate(0, 0);
+                selectedElement.transform.baseVal.insertItemBefore(translate, 0);
+            }
+
+            transform = transforms.getItem(0);
+
+            //offset.x -= parseFloat(selectedElement.getAttribute("x"));
+            //offset.y -= parseFloat(selectedElement.getAttribute("y"));
+
+            // change the offset
+            offset.x -= transform.matrix.e;
+            offset.y -= transform.matrix.f;
+        } else if (evt.target.classList.contains('main')) {
+            selectedElement = null;
+            svgPan = true;
+            currentMousePos = {
+                x:evt.clientX,
+                y:evt.clientY
+            }
         }
 
-        transform = transforms.getItem(0);
 
-        //offset.x -= parseFloat(selectedElement.getAttribute("x"));
-        //offset.y -= parseFloat(selectedElement.getAttribute("y"));
-        
-        // change the offset
-        offset.x -= transform.matrix.e;
-        offset.y -= transform.matrix.f;
     }
 
     function drag(evt) {
-        if (selectedElement!==null) {
+        aa = screenCoordsToSVG(evt.clientX, evt.clientY, svg)
+        console.log(aa.x, aa.y);
+        if(svgPan)
+        {
+            updatedMouseVal = {
+                x:evt.clientX,
+                y:evt.clientY
+            }
+
+            deltaVal = {
+                x:updatedMouseVal.x - currentMousePos.x,
+                y:updatedMouseVal.y - currentMousePos.y
+            }
+
+            x=svg.viewBox.baseVal;
+            v = screenCoordsToSVG(evt.clientX, evt.clientY, svg);
+            x.x -= deltaVal.x;
+            x.y -= deltaVal.y;
+            currentMousePos = updatedMouseVal;
+        }
+
+        if (selectedElement !== null) {
             evt.preventDefault();
 
             var coords = getMousePosition(evt);
@@ -59,6 +90,7 @@ function makeDraggable(evt) {
 
     function endDrag(evt) {
         selectedElement = null;
+        svgPan = false;
     }
 
     function getMousePosition(evt) {
@@ -69,31 +101,30 @@ function makeDraggable(evt) {
         };
     }
 
-    function screenCoordsToSVG(screenX, screenY, svgRef){
+    function screenCoordsToSVG(screenX, screenY, svgRef) {
         // translate that to svg points
         pt = svgRef.createSVGPoint();
         pt.x = screenX;
         pt.y = screenY;
 
         var svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
-        
+
         return {
-            x:svgP.x,
-            y:svgP.y
+            x: svgP.x,
+            y: svgP.y
         }
     }
 
-    function addnew(evt)
-    {
+    function addnew(evt) {
         var svgP = screenCoordsToSVG(evt.clientX, evt.clientY, svg);
-        
+
         newG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttributeNS(null, 'cx', svgP.x);
         circle.setAttributeNS(null, 'cy', svgP.y);
         circle.setAttributeNS(null, 'r', 100);
         newG.appendChild(circle);
-        newG.setAttributeNS(null,'class','draggable');
+        newG.setAttributeNS(null, 'class', 'draggable');
         document.getElementById('main-group').appendChild(newG);
     }
 }
