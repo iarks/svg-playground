@@ -6,6 +6,7 @@ function makeDraggable(evt) {
     svg.addEventListener('mouseup', endDrag);
     svg.addEventListener('mouseleave', endDrag);
     svg.addEventListener('contextmenu', showmenu)
+    svg.addEventListener('wheel', scroll)
 
     var svgPan = false;
 
@@ -14,6 +15,24 @@ function makeDraggable(evt) {
     function showmenu(evt) {
         evt.preventDefault();
         addnew(evt);
+    }
+
+    function scroll(evt){
+        console.log('scrolled');
+        zoomFactor = evt.deltaY;
+        if(zoomFactor<0) {
+            // zoom in
+            viewBoxVal = svg.viewBox.baseVal;
+            viewBoxVal.height -= 90;
+            viewBoxVal.width -= 90;
+            //debugger;
+        }
+        else if(zoomFactor>0) {
+            // zoom out
+            viewBoxVal = svg.viewBox.baseVal;
+            viewBoxVal.height += 90;
+            viewBoxVal.width += 90;
+        }
     }
 
     function startDrag(evt) {
