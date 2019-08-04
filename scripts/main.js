@@ -1,14 +1,11 @@
 function makeDraggable(evt) {
     var svg = evt.target;
-    let selectedElement = null,
-        offset = null;
+    let selectedElement = null, offset = null;
     svg.addEventListener('mousedown', startDrag);
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
     svg.addEventListener('mouseleave', endDrag);
     svg.addEventListener('contextmenu', showmenu)
-
-
 
     var svgPan = false;
 
@@ -69,8 +66,26 @@ function makeDraggable(evt) {
             }
 
             currentSVGViewBox = svg.viewBox.baseVal;
-            currentSVGViewBox.x -= deltaMouseVal.x;
-            currentSVGViewBox.y -= deltaMouseVal.y;
+            
+            // calculate pan speed
+            let viewBoxDimensions = {
+                height:currentSVGViewBox.height,
+                width:currentSVGViewBox.width
+            }
+
+            let SvgDimensions = {
+                height:svg.height.baseVal.value,
+                width:svg.height.baseVal.value    
+            }
+
+            svgPanFactor = {
+                height:viewBoxDimensions.height/SvgDimensions.height,
+                width:viewBoxDimensions.width/SvgDimensions.width
+            }
+
+            svgPanFactor = svgPanFactor.height>svgPanFactor.width?svgPanFactor.height:svgPanFactor.width;
+            currentSVGViewBox.x -= (deltaMouseVal.x*svgPanFactor);
+            currentSVGViewBox.y -= (deltaMouseVal.y*svgPanFactor);
             currentMousePos = updatedMouseVal;
             return;
         }
